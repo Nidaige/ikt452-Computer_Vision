@@ -73,7 +73,12 @@ def blur_object_pixels(model, input_image, objects_to_blur, sigma=1.0, show_obje
     input_image_blurred = transforms.GaussianBlur(kernel_size=(3,3), sigma=sigma)(input_image)
     
     mask = transforms.ToPILImage()(mask).convert('L')
-    
+    '''
+    At this point, mask refers to the detected object
+    - We apply our transforms/effects to the WHOLE image, then composite the altered image with the original, using the mask as seen below.
+    - We can probably apply any number of compositions here, using the result of one transform as the input to the next, building our finished product
+    - This is probably where we will have to call functions to apply to image.
+    '''
     masked_image = Image.composite(input_image_blurred, input_image, mask)
     
     output_image = masked_image.copy()
