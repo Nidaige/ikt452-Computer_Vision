@@ -10,10 +10,10 @@ def normalize_brightness(image, N, object_mask):
     o_mask = np.array(object_mask)
     hsv = RGB_to_HSV(image)
     brightness_brackets = list(np.linspace(0,1,N))
-    print(brightness_brackets)
     masks = {}
     for bracket in brightness_brackets:
             masks[str(brightness_brackets.index(bracket))] = np.zeros(hsv.shape[0:-1])
+            masks["all"] = np.zeros(hsv.shape[0:-1])
     
     for y in range(hsv.shape[0]):
         for x in range(hsv.shape[1]):
@@ -23,6 +23,7 @@ def normalize_brightness(image, N, object_mask):
                 if V <= bracket and not applied:
                     applied = True
                     masks[str(brightness_brackets.index(bracket))][y,x] = min(255, o_mask[y,x])
+                    masks["all"][y,x] = min(255, o_mask[y,x])*bracket
     for mask in masks.keys():
         masks[mask] = Image.fromarray((masks[mask]).astype(np.uint8))
     return masks
@@ -87,3 +88,18 @@ def HSV_to_RGB(HSV):
             # values are decimals between 0 and 1, multiply by 255 to get valid RGB-values, and insert into image
             rgb[y_coord, x_coord, :] = [r*255, g*255, b*255]
     return Image.fromarray((rgb).astype(np.uint8))  # return image with type uint8 for display purposes
+
+def apply_mask(im, mask):
+    hsv_im = RGB_to_HSV(im)
+    hsv_mask = np.array(mask)
+    for y in range(hsv_im.shape[0]):
+        for x in range(hsv_im.shape[1]):
+            H, S, V = hsv_im[y,x,:]
+            V_mask = hsv_mask[y,x] / 255
+            if V_mask > 0:
+                hsv_im[y,x] = (H,S,V_mask)
+            else:
+                hsv_im[y,x] = (H,S,V)
+    rgb = HSV_to_RGB(hsv_im)
+    return rgb
+    
